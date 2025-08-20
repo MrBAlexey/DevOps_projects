@@ -1,15 +1,17 @@
 #!/usr/bin/env bash
 cd ..
-# Скрипт инициализирует все вложенные проекты */*/ (например: for_github/C_projects/*) на гитхаб
+# запускать или bash или ./
+# Скрипт инициализирует все вложенные проекты */*/ (например: for_github/C_projects/*)
 # Параллельно создаёт на github папки с названием направления (например C_projects) и закидывает туда проекты
 # Поменять name (логин на гитхабе) и privacy (private или public) 
-
-sudo apt install -y gh
-sudo apt install -y firefox
-gh auth login
+# Требует авторизации
 
 name="MrBAlexey"
 privacy="public"
+
+sudo apt install -y gh
+# sudo apt install -y firefox
+gh auth login
 
 echo "Введите 'go' и нажмите Enter, когда будете готовы продолжить..."
 while true; do
@@ -22,31 +24,31 @@ while true; do
 done
 
 for dir in ./*; do
-    cd "$dir" || continue
+  cd "$dir" || continue
 
-    git init
-    git add .
-    git commit -m "new repository"
+  git init
+  git add .
+  git commit -m "new repository"
 
-    repo_name=$(basename "$dir")
+  repo_name=$(basename "$dir")
 
-    # Создаём репозиторий для направления (например DevOps_projects)
-    gh repo create "$name/$repo_name" --"$privacy" --confirm || echo "Репозиторий уже существует"
-    project_name=$(basename "$dir")
+  # Создаём репозиторий для направления (например DevOps_projects)
+  gh repo create "$name/$repo_name" --"$privacy" --confirm || echo "Репозиторий уже существует"
+  project_name=$(basename "$dir")
 
-    # Создаём репозиторий для проекта (только имя, без вложенных путей)
-    gh repo create "$name/$repo_name/$project_name" --"$privacy" --confirm || echo "Репозиторий уже существует"
+  # Создаём репозиторий для проекта (только имя, без вложенных путей)
+  gh repo create "$name/$repo_name/$project_name" --"$privacy" --confirm || echo "Репозиторий уже существует"
 
-    git remote add origin git@github.com:$name/$project_name.git
+  git remote add origin git@github.com:$name/$project_name.git
 
-    git push -u origin master
+  git push -u origin master
 
-    cd - || exit
+  cd - || exit
 done
 
 
 # 2. Делает репозиторий публичным/приватным
-
+# Требует авторизации
 # privacy=public
 
 # for dir in ./*/*
