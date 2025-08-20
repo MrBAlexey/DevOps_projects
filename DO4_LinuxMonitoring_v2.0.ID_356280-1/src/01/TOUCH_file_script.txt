@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+
+file_creating_no_param() {
+        if [ ! -f myFile.txt ]
+    then
+        touch myFile.txt
+        chmod 777 myFile.txt
+    else
+        fileName="myFile-$(date +'%H_%M_%S--%d-%m-%Y').txt"
+        touch "$fileName"
+        chmod 777 "$fileName"
+    fi
+}
+
+file_creating_01_param() {
+    if [ ! -f $1 ]
+    then
+        touch $1 
+        chmod 777 $1 
+    fi
+    # ! -f - проверяет существование файла
+}
+
+new_line() {
+#ЭТА ФУНКЦИЯ НЕ РАБОТАЕТ, так как это было задумано, если последняя строка не пустая - отступ не делается
+    if [ ! -z "$(tail -n 1 $1)" ]
+    then
+        echo "" >> $1
+    fi
+    # ! -z "$(tail -n 1 $1)"- проверяет что последняя строка не пустая
+}
+
+file_log() {
+    echo -en "NAME: $2  \nDATE: "  >> $1
+    date +"%H:%M:%S %d-%m-%Y %Z %:z">> $1
+    echo "CONTENT: " >> $1
+}
+
+case "$#" in 
+    0) file_creating_no_param
+        new_line "myFile.txt";;
+    1) file_creating_01_param "$1"
+        new_line "myFile.txt";;
+    2) file_creating_01_param "$1"
+        new_line "myFile.txt"
+        file_log "$1" "$2";;
+esac
+
+
+
+# if [ $# -ne 0 ]
+# then
+#     if [ ! -f $1 ]
+#     then
+#         touch $1 
+#         chmod 777 $1 
+#     fi
+#     # ! -f - проверяет существование файла
+
+#     if [ -n "$(head -n 1 $1)" ]
+#     then
+#         echo -en "\n" >> $1
+#     fi
+#     # -n "$(head -n 1 $1)"- проверяет что 1я строка не пустая
+
+#     echo -n "$(basename "$2") - " >> $1
+#     date +"%H:%M:%S %d-%m-%Y %Z %:z">> $1
+# else
+#     if [ ! -f myFile.txt ]
+#     then
+#         touch myFile.txt
+#         chmod 777 myFile.txt
+#     else
+#         fileName="myFile.txt-$(date +'%H-%M-%S_%d-%m-%Y')"
+#         touch "$fileName"
+#         chmod 777 "$fileName"
+#     fi
+# fi

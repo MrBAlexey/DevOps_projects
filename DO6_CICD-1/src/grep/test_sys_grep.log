@@ -1,0 +1,210 @@
+1:#include "s21_grep.h"
+2:
+3:#include <getopt.h>
+4:#include <regex.h>
+5:#include <stdio.h>
+6:#include <stdlib.h>
+7:#include <string.h>
+8:
+9:void add_pattern(arguments *arg, char *pattern) {
+10:  if (pattern == NULL) {
+11:    return;
+12:  }
+13:  int n = strlen(pattern);
+14:  if (arg->len_pattern == 0) {
+15:    arg->pattern = malloc(1024 * sizeof(char));
+16:    arg->pattern[0] = '\0';
+17:    arg->mem_pattern = 1024;
+18:  }
+19:  if (arg->mem_pattern < arg->len_pattern + n) {
+20:    arg->pattern = realloc(arg->pattern, arg->mem_pattern * 2);
+21:  }
+22:  if (arg->len_pattern != 0) {
+23:    strcat(arg->pattern + arg->len_pattern,
+24:           "|"); /*strcat -добавляет копию строки А в конец строки В в место \0,
+25:                    и добавляет в конец новой строки \0 */
+26:    arg->len_pattern++;
+27:  }
+28:  arg->len_pattern +=
+29:      sprintf(arg->pattern + arg->len_pattern, "(%s)",
+30:              pattern); /*идентична printf(), но вывод производится в указанный
+31:                           аргументом массив, возвращает кол-во символов
+32:                           занесённых в массив*/
+33:}
+34:
+35:void regular_from_file(arguments *arg, char *path_to_file) {
+36:  FILE *f = fopen(path_to_file, "r");
+37:  if (f == NULL) {
+38:    if (!arg->s) perror(path_to_file);
+39:  }
+40:  char *line = NULL;
+41:  size_t memlen = 0;
+42:  int read = getline(&line, &memlen, f);
+43:  while (read != -1) {
+44:    if (line[read - 1] == '\n') line[read - 1] = '\0';
+45:    add_pattern(arg, line);
+46:    read = getline(&line, &memlen, f);
+47:  }
+48:  free(line);
+49:  fclose(f);
+50:}
+51:
+52:arguments argument_parser(int argc, char *argv[]) {
+53:  arguments arg = {0};
+54:  int opt = 0;
+55:  while ((opt = getopt_long(argc, argv, "e:ivclnhsf:o", NULL, NULL)) != -1) {
+56:    switch (opt) {
+57:      case 'e': /*Шаблон начинающийся с '-'*/
+58:        arg.e = 1;
+59:        add_pattern(&arg, optarg); /*в optarg сохраняем regex*/
+60:        break;
+61:      case 'i':
+62:        arg.i = REG_ICASE; /*flag -i, вывод данных вне зависимости от регистра
+63:                              (регистр независимого поиска)*/
+64:        break;
+65:      case 'v': /*Выдает все строки, за исключением содержащих образец.*/
+66:        arg.v = 1;
+67:        break;
+68:      case 'c': /*Выдает только количество строк, содержащих образец.*/
+69:        arg.c = 1;
+70:        break;
+71:      case 'l': /*Выдает только имена файлов, содержащих сопоставившиеся строки,
+72:                  по одному в строке. Если образец найден в нескольких строках
+73:                  файла, имя файла не повторяется.*/
+74:        arg.c = 1;
+75:        arg.l = 1;
+76:        break;
+77:      case 'n':
+78:        arg.n = 1; /*Выдает перед каждой строкой ее номер в файле (строки
+79:                      нумеруются с 1).*/
+80:        break;
+81:      case 'h': /*Выводит совпадающие строки, не предваряя их именами файлов.*/
+82:        arg.h = 1;
+83:        break;
+84:      case 's': /*Подавляет выдачу сообщений о не существующих или недоступных
+85:                   для чтения файлах.*/
+86:        arg.s = 1;
+87:        break;
+88:      case 'f': /*Получает регулярные выражения из файла.*/
+89:        arg.f = 1;
+90:        regular_from_file(&arg, optarg);
+91:        break;
+92:      case 'o':
+93:        arg.o = 1; /*Печатает только совпадающие (непустые) части совпавшей
+94:                      строки.*/
+95:        break;
+96:      default:
+97:        printf(
+98:            "usage: s21_grep [-cefhilnosv] [-e pattern] [-f file] [--null] "
+99:            "[pattern] [file ...]");
+100:        exit(1);
+101:    }
+102:  }
+103:  if (arg.len_pattern == 0) {
+104:    add_pattern(&arg, argv[optind]);
+105:    optind++;
+106:  }
+107:  if (argc - optind == 1) {
+108:    arg.h = 1; /*flag -h*/
+109:  }
+110:  return arg;
+111:}
+112:
+113:void line_output(char *line, int n) { /*flag e*/
+115:    putchar(line[i]);
+116:  }
+117:  if (line[n - 1] != '\n') putchar('\n');
+118:}
+119:
+120:// вывод линии(строки) по символу
+121:void match_print(regex_t *preg, char *line) {
+122:  // структура для хранения позиции совпадения
+123:  regmatch_t match;
+124:  int offset = 0;
+125:  while (1) {
+126:    // находим совпадение в строке. Смещаемся каждый раз на offset
+127:    int result = regexec(preg, line + offset, 1, &match, 0);
+128:
+129:    // если совпадений нет, то завершаем цикл
+130:    if (result != 0) break;
+131:    /*выводим само совпадение с шаблоном используя переменные rm_so (начало
+132:    совпадения) и rm_eo (конец совпадения)*/
+134:      putchar(line[offset + i]);
+135:    }
+136:    putchar('\n');
+137:    // двигаем наш offset чтобы продолжить со следующего места
+138:    offset += match.rm_eo;
+139:  }
+140:}
+141:
+142:// обработка файла
+143:void processFile(arguments arg, char *path, regex_t *preg) {
+144:  FILE *f = fopen(path, "r");
+145:  if (f == NULL) {
+146:    if (!arg.s)
+147:      perror(path);  // реализ-я флага -s, который -s подавляет сообщения об
+148:                     // ошибках о несуществующих или нечитаемых файлах.
+149:                     // если флаг не arg.s, то выводи сообщение об ошибке. Метод
+150:                     // от противного.
+151:    return;
+152:  }
+153:  char *line = NULL;
+154:  size_t memlen = 0;
+155:  int read = 0;
+156:  int line_count = 1;
+157:  int counter = 0; /*смещение*/
+158:
+159:  read = getline(&line, &memlen, f);
+160:  while (read != -1) {
+161:    int result = regexec(preg, line, 0, NULL, 0);
+162:    if ((result == 0 && !arg.v) || (arg.v && result != 0)) { /*flag -v*/
+163:      if (!arg.c && !arg.l) {
+164:        if (!arg.h) printf("%s:", path);
+165:        if (arg.n) printf("%d:", line_count); /*flag -n*/
+166:        if (arg.o) {                          /*flag -o*/
+167:          match_print(preg, line);
+168:        } else {
+169:          line_output(line, read);
+170:        }
+171:      }
+172:      counter++;
+173:    }
+174:    read = getline(&line, &memlen, f);
+175:    line_count++;
+176:  }
+177:  free(line);
+178:  if (arg.c && !arg.l) { /*flag -c*/
+179:    if (!arg.h) printf("%s:", path);
+180:    printf("%d\n", counter);
+181:  }
+182:  if (arg.l && counter > 0)
+183:    printf("%s\n", path), /*flag -l*/
+184:        fclose(f);
+185:}
+186:
+187:// вывод из всех файлов
+188:void output(arguments arg, int argc, char **argv) {
+189:  // указатель на переменную preg типа regex_t, в которую будет
+190:  // сохранено скомпилированное регулярное выражение.
+191:  regex_t preg;
+192:  // (ссылка на структуру, где будет сохранено скомпилированное
+193:  // регул-е выражение; сам рег-е выраж-е; флаги, управл-ие
+194:  // компиляцией рег-го выраж-ия)
+195:  int error = regcomp(&preg, arg.pattern, REG_EXTENDED | arg.i); /* flag -i*/
+196:  if (error) perror("Error");
+198:    processFile(arg, argv[i], &preg);
+199:  }
+200:  regfree(&preg);
+201:}
+202:
+203:int main(int argc, char *argv[]) {
+204:  if (argc > 1) {
+205:    arguments arg = argument_parser(argc, argv);
+206:    output(arg, argc, argv);
+207:    free(arg.pattern);
+208:  } else
+209:    printf(
+210:        "usage: s21_grep [-cefhilnosv] [-e pattern] [-f file] [--null] "
+211:        "[pattern] [file ...]");
+212:  return 0;
+213:}

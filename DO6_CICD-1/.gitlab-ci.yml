@@ -1,0 +1,71 @@
+stages:
+  - build
+  - style
+  - test
+  - deploy
+
+build-job:
+  stage: build
+  tags:
+    - build
+  script:
+    - make -C src/cat
+    - make -C src/grep
+  artifacts:
+    paths:
+      - src/cat/s21_cat
+      - src/grep/s21_grep
+    expire_in: 30 days
+  after_script:
+    - cd src
+    - chmod +x tg_bot_connect.sh
+    - bash tg_bot_connect.sh
+  only:
+    - develop
+
+style-job:
+  stage: style
+  tags:
+    - style
+  script:
+    - clang-format -style=Google -Werror -n src/cat/s21_cat.* src/grep/s21_grep.*
+  after_script:
+    - cd src
+    - chmod +x tg_bot_connect.sh
+    - bash tg_bot_connect.sh
+  only:
+    - develop
+
+test-job:
+  stage: test
+  tags:
+    - test
+  when: on_success
+  script:
+    - cd src
+    - bash fall_tests.sh
+  after_script:
+    - cd src
+    - chmod +x tg_bot_connect.sh
+    - bash tg_bot_connect.sh
+  only:
+    - develop
+
+deploy-job:
+  stage: deploy
+  tags:
+    - deploy
+  needs:
+    - build-job
+    - style-job
+    - test-job
+  when: manual
+  script:
+    - cd src
+    - bash deploy.sh
+  after_script:
+    - cd src
+    - chmod +x tg_bot_connect.sh
+    - bash tg_bot_connect.sh
+  only:
+    - develop
