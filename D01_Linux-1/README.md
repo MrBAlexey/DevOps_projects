@@ -16,20 +16,20 @@
 - Подготовлен подробный отчёт с командами и скриншотами (в папке src/screenshots).
 
 Ключевые технологии и инструменты:
-ОC: Ubuntu 20.04 Server LTS
-Виртуализация: VirtualBox
-Сеть: DHCP, netplan (статический IP), ip route, ping, curl (внешний IP)
-Сервисы: systemd, openssh-server (sshd), systemd-timesyncd, sudo, systemctl (SSH/NTP).
-Мониторинг/утилиты: top, htop, ncdu, du, df, fdisk, ps aux, netstat
-Редакторы: vim, nano, joe
-Автоматизация заданий: crontab
-Скрипты/команды: Bash
-Логи: /var/log/*, last, journalctl.
+- ОC: Ubuntu 20.04 Server LTS
+- Виртуализация: VirtualBox
+- Сеть: DHCP, netplan (статический IP), ip route, ping, curl (внешний IP)
+- Сервисы: systemd, openssh-server (sshd), systemd-timesyncd, sudo, systemctl (SSH/NTP).
+- Мониторинг/утилиты: top, htop, ncdu, du, df, fdisk, ps aux, netstat
+- Редакторы: vim, nano, joe
+- Автоматизация заданий: crontab
+- Скрипты/команды: Bash
+- Логи: /var/log/*, last, journalctl.
 
 Как повторить (быстрая инструкция):
-Установить VirtualBox и скачать Ubuntu 20.04 Server ISO.
-Создать VM (2GB RAM, 20GB disk), установить ОС без GUI.
-В терминале выполнить последовательность команд из отчёта (netplan, hostnamectl, timedatectl, apt install openssh-server, настройка sshd_config, установка утилит и т.п.).
+- Установить VirtualBox и скачать Ubuntu 20.04 Server ISO.
+- Создать VM (2GB RAM, 20GB disk), установить ОС без GUI.
+- В терминале выполнить последовательность команд из отчёта (netplan, hostnamectl, timedatectl, apt install openssh-server, настройка sshd_config, установка утилит и т.п.).
 
 Проверить работу: ping 1.1.1.1, netstat -tan | grep 2022, timedatectl show, crontab -l, swapon --show.
 
