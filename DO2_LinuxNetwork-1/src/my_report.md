@@ -981,6 +981,7 @@ iptables -t nat -A PREROUTING -p <protocol> --dport <original_port> -j DNAT --to
 
 ##### Запусти файл также, как в Части 4.
    ![](screenshorts/7.96_task_network(r2_firewall_start).png)
+
 *Перед тестированием рекомендуется отключить сетевой интерфейс **NAT** (его наличие можно проверить командой `ip a`) в VirtualBox, если он включен.*
 ##### Проверь соединение по TCP для **SNAT**: для этого с ws22 подключиться к серверу Apache на r1 командой:
 `telnet [адрес] [порт]`
@@ -994,7 +995,7 @@ iptables -t nat -A PREROUTING -p <protocol> --dport <original_port> -j DNAT --to
    r1:
    ![](screenshorts/7.98_task_network(r1_tcpdump_from_ws22).png)
    
-   ws22:
+   ws22: \
    ![](screenshorts/7.99_task_network(ws22_ping_r1).png)
 
 
